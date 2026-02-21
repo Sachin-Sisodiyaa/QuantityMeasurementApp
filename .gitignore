@@ -1,0 +1,15 @@
+# Ignore everything
+*
+
+# But do not ignore src folder and .git
+!.git
+!src/
+!src/**
+
+# Keep .gitignore itself
+!.gitignore
+
+# Keep pom.xml and README.md
+!README.md
+!pom.xml
+
