@@ -2,68 +2,37 @@ package com.apps.quantitymanagementapp;
 
 public class QuantityMeasurementApp {
 
-	public static class Feet {
-		private final double value;
-
-		public Feet(double value) {
-			if (!Double.isFinite(value)) {
-				throw new IllegalArgumentException("Feet value must be a finite number");
-			}
-			this.value = value;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-
-			if (obj == null || getClass() != obj.getClass())
-				return false;
-
-			Feet other = (Feet) obj;
-			return Double.compare(this.value, other.value) == 0;
-		}
-	}
-
-	public static class Inches {
-		private final double value;
-
-		public Inches(double value) {
-			if (!Double.isFinite(value)) {
-				throw new IllegalArgumentException("Inches value must be a finite number");
-			}
-			this.value = value;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-
-			if (obj == null || getClass() != obj.getClass())
-				return false;
-
-			Inches other = (Inches) obj;
-			return Double.compare(this.value, other.value) == 0;
-		}
+	public static boolean demonstrateLengthEquality(Length l1, Length l2) {
+		return l1.equals(l2);
 	}
 
 	public static void demonstrateFeetEquality() {
-		Feet f1 = new Feet(1.0);
-		Feet f2 = new Feet(1.0);
-		System.out.println("Input: " + f1.value + " ft and " + f2.value + " ft");
-		System.out.println("Output: Equal(" + f1.equals(f2) + ")");
+		Length l1 = new Length(1.0, Length.LengthUnit.FEET);
+		Length l2 = new Length(1.0, Length.LengthUnit.FEET);
+		System.out.println("Input: Quantity(" + l1.getValue() + ",\"" + l1.getUnit() +"\") and Quantity("+ l2.getValue() + ",\"" + l2.getUnit() + "\")");
+		System.out.println("Output: Equal(" + l1.equals(l2) + ")");
+
 	}
 
 	public static void demonstrateInchesEquality() {
-		Inches i1 = new Inches(1.0);
-		Inches i2 = new Inches(3.0);
-		System.out.println("Input: " + i1.value + " inch and " + i2.value + " inch");
-		System.out.println("Output: Equal(" + i1.equals(i2) + ")");
+		Length l1 = new Length(1.0, Length.LengthUnit.INCHES);
+		Length l2 = new Length(1.0, Length.LengthUnit.INCHES);
+
+		System.out.println("Input: Quantity(" + l1.getValue() + ",\"" + l1.getUnit() +"\") and Quantity("+ l2.getValue() + ",\"" + l2.getUnit() + "\")");
+		System.out.println("Output: Equal(" + l1.equals(l2) + ")");
+	}
+
+	public static void demonstrateFeetInchesComparison() {
+		Length l1 = new Length(1.0, Length.LengthUnit.FEET);
+		Length l2 = new Length(12.0, Length.LengthUnit.INCHES);
+		System.out.println("Input: Quantity(" + l1.getValue() + ",\"" + l1.getUnit() +"\") and Quantity("+ l2.getValue() + ",\"" + l2.getUnit() + "\")");
+
+		System.out.println("Output: Equal(" + l1.equals(l2) + ")");
 	}
 
 	public static void main(String[] args) {
 		demonstrateFeetEquality();
 		demonstrateInchesEquality();
+		demonstrateFeetInchesComparison();
 	}
 }
