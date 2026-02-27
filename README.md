@@ -348,3 +348,110 @@ Quantity<VolumeUnit> sum = gallon.add(litre); // 2.0 GALLON
 ```
 
 ---
+
+## **UC12: Subtraction and Division - Expanding Arithmetic Operations**
+
+### **What we did:**
+- Implemented `subtract()` method with same/explicit target unit
+- Implemented `divide()` method returning ratio
+- Added comprehensive validation for all arithmetic operations
+- Centralized validation logic to avoid duplication
+
+### **What we learned:**
+- **Consistent API design**: Subtraction mirrors addition's dual-method pattern
+- **Division semantics**: Returns scalar (double), not Quantity
+- **Validation patterns**: Consistent error handling across operations
+- **Edge case handling**: Division by zero protection with epsilon comparison
+
+### **Key implementations:**
+
+#### Subtraction:
+```java
+Quantity<LengthUnit> l1 = new Quantity<>(5.0, FEET);
+Quantity<LengthUnit> l2 = new Quantity<>(3.0, FEET);
+Quantity<LengthUnit> diff = l1.subtract(l2); // 2.0 FEET
+
+// With explicit target unit
+Quantity<LengthUnit> diffInches = l1.subtract(l2, INCHES); // 24.0 INCHES
+```
+
+#### Division:
+```java
+Quantity<LengthUnit> l1 = new Quantity<>(6.0, FEET);
+Quantity<LengthUnit> l2 = new Quantity<>(3.0, FEET);
+double ratio = l1.divide(l2); // 2.0 (dimensionless)
+```
+
+### **Validation strategy:**
+```java
+private void validateArithmeticOperands(Quantity<U> other, U targetUnit, boolean targetUnitRequired) {
+    // Null check
+    // Category compatibility check
+    // Finite value check
+    // Target unit check (conditional)
+}
+```
+
+---
+
+## **UC13: Centralized Arithmetic Logic - DRY at Operation Level**
+
+### **What we did:**
+- Created `ArithmeticOperation` enum encapsulating operation logic
+- Refactored `add()`, `subtract()`, `divide()` to use centralized helpers
+- Eliminated code duplication across arithmetic methods
+- Introduced functional programming with `DoubleBinaryOperator`
+
+### **What we learned:**
+- **Strategy Pattern**: Enum-based strategy for different operations
+- **Lambda expressions**: Using lambdas for operation logic
+- **Template Method Pattern**: Shared validation + operation + conversion flow
+- **DRY at algorithm level**: Don't repeat the "convert → operate → convert back" pattern
+- **Code reduction**: 50% fewer lines of code with improved maintainability
+
+### **Architecture breakthrough:**
+
+#### ArithmeticOperation Enum:
+```java
+private enum ArithmeticOperation {
+    ADD((a, b) -> a + b),
+    SUBTRACT((a, b) -> a - b),
+    DIVIDE((a, b) -> {
+        if (Math.abs(b) < EPSILON) {
+            throw new ArithmeticException("Cannot divide by zero");
+        }
+        return a / b;
+    });
+    
+    private final DoubleBinaryOperator operation;
+    
+    ArithmeticOperation(DoubleBinaryOperator operation) {
+        this.operation = operation;
+    }
+    
+    public double compute(double a, double b) {
+        return operation.applyAsDouble(a, b);
+    }
+}
+```
+
+#### Centralized Helper:
+```java
+private double performBaseArithmetic(Quantity<U> other, ArithmeticOperation operation) {
+    double thisBase = unit.convertToBaseUnit(this.value);
+    double otherBase = other.unit.convertToBaseUnit(other.value);
+    return operation.compute(thisBase, otherBase);
+}
+
+// Usage:
+double result = performBaseArithmetic(other, ArithmeticOperation.SUBTRACT);
+```
+
+### **Benefits achieved:**
+1. **Single source of truth**: Operation logic defined once
+2. **Easy extension**: Adding multiply/modulo means adding one enum constant
+3. **Consistent behavior**: All operations use same validation flow
+4. **Testability**: Can test operations independently
+5. **Functional programming**: Leveraging Java's functional capabilities
+
+---
