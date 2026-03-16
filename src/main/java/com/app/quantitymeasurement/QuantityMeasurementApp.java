@@ -1,33 +1,67 @@
-package com.apps.quantitymeasurementapp;
+package com.app.quantitymeasurement;
 
-import com.apps.quantitymeasurementapp.controller.QuantityMeasurementController;
-import com.apps.quantitymeasurementapp.entity.QuantityDTO;
-import com.apps.quantitymeasurementapp.quantity.Quantity;
-import com.apps.quantitymeasurementapp.repository.IQuantityMeasurementRepository;
-import com.apps.quantitymeasurementapp.repository.QuantityMeasurementCacheRepository;
-import com.apps.quantitymeasurementapp.service.IQuantityMeasurementService;
-import com.apps.quantitymeasurementapp.service.QuantityMeasurementServiceImpl;
-import com.apps.quantitymeasurementapp.unit.*;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
+
+import com.app.quantitymeasurement.controller.QuantityMeasurementController;
+import com.app.quantitymeasurement.entity.QuantityDTO;
+import com.app.quantitymeasurement.entity.QuantityMeasurementEntity;
+import com.app.quantitymeasurement.quantity.Quantity;
+import com.app.quantitymeasurement.repository.IQuantityMeasurementRepository;
+import com.app.quantitymeasurement.repository.QuantityMeasurementDatabaseRepository;
+import com.app.quantitymeasurement.repository.QuantityMeasurementCacheRepository;
+import com.app.quantitymeasurement.service.IQuantityMeasurementService;
+import com.app.quantitymeasurement.service.QuantityMeasurementServiceImpl;
+import com.app.quantitymeasurement.unit.IMeasurable;
+import com.app.quantitymeasurement.unit.LengthUnit;
+import com.app.quantitymeasurement.unit.VolumeUnit;
+import com.app.quantitymeasurement.unit.WeightUnit;
+import com.app.quantitymeasurement.util.ApplicationConfig;
 
 public class QuantityMeasurementApp {
 
+	private static final Logger LOGGER = Logger.getLogger(QuantityMeasurementApp.class.getName());
+	private static final IQuantityMeasurementRepository REPOSITORY = buildRepository();
 	private static final QuantityMeasurementController CONTROLLER = buildController();
 
 	private static QuantityMeasurementController buildController() {
-		IQuantityMeasurementRepository repository = new QuantityMeasurementCacheRepository();
-		IQuantityMeasurementService service = new QuantityMeasurementServiceImpl(repository);
+		IQuantityMeasurementService service = new QuantityMeasurementServiceImpl(REPOSITORY);
 		return new QuantityMeasurementController(service);
 	}
-
-	public static <U extends IMeasurable> boolean demonstrateEquality(Quantity<U> q1, Quantity<U> q2) {
-		return CONTROLLER.compareQuantities(q1, q2);
+	
+	private static IQuantityMeasurementRepository buildRepository() {
+	    LOGGER.info("Using cache repository");
+		//System.out.println("Using cache repository");
+	    return new QuantityMeasurementCacheRepository();
 	}
+
+
+//	private static IQuantityMeasurementRepository buildRepository() {
+//		ApplicationConfig config = new ApplicationConfig();
+//		if ("cache".equalsIgnoreCase(config.getRepositoryType())) {
+//			LOGGER.info("Using cache repository");
+//			return new QuantityMeasurementCacheRepository();
+//		}
+//		LOGGER.info("Using database repository");
+//		return new QuantityMeasurementDatabaseRepository(config);
+//	}
+
+//	public static <U extends IMeasurable> boolean demonstrateEquality(Quantity<U> q1, Quantity<U> q2) {
+//		return CONTROLLER.compareQuantities(q1, q2);
+//	}
+	
+	public static <U extends IMeasurable> boolean demonstrateEquality(Quantity<U> q1, Quantity<U> q2) {
+		return q1.equals(q2);
+	}
+
 
 	public static <U extends IMeasurable> Quantity<U> demonstrateSubtraction(Quantity<U> q1, Quantity<U> q2) {
 
 		Quantity<U> result = CONTROLLER.subtractQuantities(q1, q2);
 
-		System.out.println("Subtraction Result: " + result);
+		LOGGER.info("Subtraction Result: " + result);
+		//System.out.println("Subtraction Result: " + result);
 		return result;
 	}
 
@@ -36,7 +70,7 @@ public class QuantityMeasurementApp {
 
 		Quantity<U> result = CONTROLLER.subtractQuantities(q1, q2, targetUnit);
 
-		System.out.println("Subtraction Result: " + result);
+		LOGGER.info("Subtraction Result: " + result);
 		return result;
 	}
 
@@ -44,7 +78,7 @@ public class QuantityMeasurementApp {
 
 		double result = CONTROLLER.divideQuantities(q1, q2);
 
-		System.out.println("Division Result: " + result);
+		LOGGER.info("Division Result: " + result);
 		return result;
 	}
 
@@ -56,48 +90,80 @@ public class QuantityMeasurementApp {
 
 		boolean result = CONTROLLER.compareQuantities(q1, q2);
 
-		System.out.println("quantities are equal : " + result);
+		LOGGER.info("quantities are equal : " + result);
 		return result;
 	}
 
+//	public static <U extends IMeasurable> double demonstrateConversion(double value, U from, U to) {
+//
+//		Quantity<U> converted = CONTROLLER.convertQuantity(new Quantity<>(value, from), to);
+//		double result = converted.getValue();
+//
+//		LOGGER.info(value + " " + from.getUnitName() + " = " + result + " " + to.getUnitName());
+//
+//		return result;
+//	}
+	
 	public static <U extends IMeasurable> double demonstrateConversion(double value, U from, U to) {
 
-		Quantity<U> converted = CONTROLLER.convertQuantity(new Quantity<>(value, from), to);
-		double result = converted.getValue();
-
-		System.out.println(value + " " + from.getUnitName() + " = " + result + " " + to.getUnitName());
-
-		return result;
+		Quantity<U> quantity = new Quantity<>(value, from);
+		return quantity.convertTo(to).getValue();
 	}
+
 
 	public static <U extends IMeasurable> Quantity<U> demonstrateAddition(Quantity<U> q1, Quantity<U> q2) {
 
 		Quantity<U> result = CONTROLLER.addQuantities(q1, q2);
 
-		System.out.println("Addition : " + result);
+		LOGGER.info("Addition : " + result);
 
 		return result;
 	}
 
-	public static <U extends IMeasurable> Quantity<U> demonstrateAddition(Quantity<U> q1, Quantity<U> q2,
-			U targetUnit) {
+//	public static <U extends IMeasurable> Quantity<U> demonstrateAddition(Quantity<U> q1, Quantity<U> q2,
+//			U targetUnit) {
+//
+//		Quantity<U> result = CONTROLLER.addQuantities(q1, q2, targetUnit);
+//
+//		LOGGER.info("Addition : " + result);
+//
+//		return result;
+//	}
+	
+	public static <U extends IMeasurable> Quantity<U> demonstrateAddition(
+			Quantity<U> q1, Quantity<U> q2, U targetUnit) {
 
-		Quantity<U> result = CONTROLLER.addQuantities(q1, q2, targetUnit);
-
-		System.out.println("Addition : " + result);
-
-		return result;
+		Quantity<U> result = q1.add(q2);
+		return result.convertTo(targetUnit);
 	}
+
 
 	public static <U extends IMeasurable> void demonstrateConversion(Quantity<U> quantity, U targetUnit) {
 
 		Quantity<U> converted = CONTROLLER.convertQuantity(quantity, targetUnit);
 
-		System.out.println("Original: " + quantity);
-		System.out.println("Converted: " + converted);
+		LOGGER.info("Original: " + quantity);
+		LOGGER.info("Converted: " + converted);
+	}
+
+	public static void deleteAllMeasurements() {
+		REPOSITORY.deleteAllMeasurements();
+	}
+
+	public static List<QuantityMeasurementEntity> getAllMeasurements() {
+		return REPOSITORY.getAllMeasurements();
+	}
+
+	public static Map<String, Integer> getPoolStatistics() {
+		return REPOSITORY.getPoolStatistics();
+	}
+
+	public static void closeResources() {
+		REPOSITORY.releaseResources();
 	}
 
 	public static void main(String[] args) {
+		deleteAllMeasurements();
 
 		demonstrateComparison(1.0, LengthUnit.FEET, 12.0, LengthUnit.INCHES);
 
@@ -152,5 +218,9 @@ public class QuantityMeasurementApp {
 
 		demonstrateSubtraction(x1, x2);
 		demonstrateDivision(x1, x2);
+
+		LOGGER.info("Stored measurements: " + getAllMeasurements().size());
+		LOGGER.info("Repository statistics: " + getPoolStatistics());
+		closeResources();
 	}
 }
