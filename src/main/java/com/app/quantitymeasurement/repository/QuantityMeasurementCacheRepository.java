@@ -1,4 +1,4 @@
-package com.apps.quantitymeasurementapp.repository;
+package com.app.quantitymeasurement.repository;
 
 import java.io.EOFException;
 import java.io.FileInputStream;
@@ -11,9 +11,11 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
 
-import com.apps.quantitymeasurementapp.entity.QuantityMeasurementEntity;
-import com.apps.quantitymeasurementapp.exception.QuantityMeasurementException;
+import com.app.quantitymeasurement.entity.QuantityMeasurementEntity;
+import com.app.quantitymeasurement.exception.QuantityMeasurementException;
 
 public class QuantityMeasurementCacheRepository implements IQuantityMeasurementRepository {
 
@@ -40,80 +42,108 @@ public class QuantityMeasurementCacheRepository implements IQuantityMeasurementR
 		return new ArrayList<>(cache);
 	}
 
-	private void loadHistory() {
+	@Override
+	public synchronized List<QuantityMeasurementEntity> getMeasurementsByOperation(String operation) {
+		String normalizedOperation = normalize(operation);
+		return cache.stream()
+				.filter(entity -> normalize(entity.getOperation()).equals(normalizedOperation))
+				.collect(Collectors.toCollection(ArrayList::new));
+	}
 
+	@Override
+	public synchronized List<QuantityMeasurementEntity> getMeasurementsByType(String measurementType) {
+		String normalizedType = normalize(measurementType);
+		return cache.stream()
+				.filter(entity -> normalize(entity.getMeasurementType()).equals(normalizedType))
+				.collect(Collectors.toCollection(ArrayList::new));
+	}
+
+	@Override
+	public synchronized long getTotalCount() {
+		return cache.size();
+	}
+
+	@Override
+	public synchronized void deleteAllMeasurements() {
+		cache.clear();
+		try {
+			Files.deleteIfExists(storagePath);
+		} catch (IOException exception) {
+			throw new QuantityMeasurementException("Failed to delete measurement history", exception);
+		}
+	}
+
+	private void loadHistory() {
 		if (!Files.exists(storagePath)) {
 			return;
 		}
 
+		FileInputStream fileInputStream = null;
+		ObjectInputStream inputStream = null;
 		try {
-
-			if (Files.size(storagePath) >= 2) {
-
-				try (FileInputStream fis = new FileInputStream(storagePath.toFile())) {
-					int b1 = fis.read();
-					int b2 = fis.read();
-
-					if (b1 != 0xAC || b2 != 0xED) {
-						throw new IOException("Corrupted serialization header");
-					}
-				}
-
-			} else {
-				throw new IOException("File too small to be valid serialization");
-			}
-
-			try (ObjectInputStream inputStream =
-					new ObjectInputStream(new FileInputStream(storagePath.toFile()))) {
-
-				while (true) {
-					Object record = inputStream.readObject();
-
-					if (record instanceof QuantityMeasurementEntity) {
-						cache.add((QuantityMeasurementEntity) record);
-					} else {
-						throw new IOException("Invalid object in history file");
-					}
+			fileInputStream = new FileInputStream(storagePath.toFile());
+			inputStream = new ObjectInputStream(fileInputStream);
+			while (true) {
+				Object record = inputStream.readObject();
+				if (record instanceof QuantityMeasurementEntity) {
+					cache.add((QuantityMeasurementEntity) record);
 				}
 			}
-
-		} 
-		catch (EOFException ignored) {
-		} 
-		catch (IOException | ClassNotFoundException exception) {
+		} catch (EOFException ignored) {
+		} catch (IOException | ClassNotFoundException exception) {
+			closeQuietly(inputStream);
+			closeQuietly(fileInputStream);
 			recoverCorruptedHistory(exception);
+		} finally {
+			closeQuietly(inputStream);
+			closeQuietly(fileInputStream);
 		}
 	}
 
 	private void recoverCorruptedHistory(Exception cause) {
-
-		Path corruptedBackup =
-				storagePath.resolveSibling(storagePath.getFileName().toString() + ".corrupted");
-
+		Path corruptedBackup = storagePath.resolveSibling(storagePath.getFileName() + ".corrupted");
 		try {
 			Files.move(storagePath, corruptedBackup, StandardCopyOption.REPLACE_EXISTING);
 			cache.clear();
 		} catch (IOException backupException) {
 			backupException.addSuppressed(cause);
-			throw new QuantityMeasurementException(
-					"Failed to load measurement history", backupException);
+			throw new QuantityMeasurementException("Failed to load measurement history", backupException);
 		}
 	}
 
 	private void writeEntity(QuantityMeasurementEntity entity) {
-
 		boolean append = Files.exists(storagePath) && storagePath.toFile().length() > 0;
 
-		try (ObjectOutputStream outputStream =
-				append
+		try (ObjectOutputStream outputStream = append
 				? new AppendableObjectOutputStream(new FileOutputStream(storagePath.toFile(), true))
 				: new ObjectOutputStream(new FileOutputStream(storagePath.toFile(), true))) {
-
 			outputStream.writeObject(entity);
-
 		} catch (IOException exception) {
-			throw new QuantityMeasurementException(
-					"Failed to save measurement history", exception);
+			throw new QuantityMeasurementException("Failed to save measurement history", exception);
+		}
+	}
+
+	private String normalize(String value) {
+		return value == null ? "" : value.trim().toUpperCase(Locale.ROOT);
+	}
+
+	private void closeQuietly(ObjectInputStream inputStream) {
+		if (inputStream == null) {
+			return;
+		}
+		try {
+			inputStream.close();
+		} catch (IOException ignored) {
+		}
+	}
+
+	private void closeQuietly(FileInputStream inputStream) {
+		if (inputStream == null) {
+			return;
+		}
+		try {
+			inputStream.close();
+		} catch (IOException ignored) {
 		}
 	}
 }
