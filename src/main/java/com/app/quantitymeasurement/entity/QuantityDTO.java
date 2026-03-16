@@ -1,5 +1,4 @@
-
-package com.apps.quantitymeasurementapp.entity;
+package com.app.quantitymeasurement.entity;
 
 import java.io.Serializable;
 
