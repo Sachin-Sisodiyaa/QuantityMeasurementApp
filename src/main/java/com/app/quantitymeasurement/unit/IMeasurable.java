@@ -1,4 +1,4 @@
-package com.apps.quantitymeasurementapp.unit;
+package com.app.quantitymeasurement.unit;
 
 public interface IMeasurable {
 
@@ -14,10 +14,8 @@ public interface IMeasurable {
 		return getClass().getSimpleName().replace("Unit", "").toUpperCase();
 	}
 
-	SupportsArithmetic supportsArithmetic = () -> true;
-
 	default boolean supportsArithmetic() {
-		return supportsArithmetic.isSupported();
+		return true;
 	}
 
 	default void validateOperationSupport(String operation) {
