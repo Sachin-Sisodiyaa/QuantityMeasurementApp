@@ -1,109 +1,148 @@
-package com.apps.quantitymeasurementapp.entity;
+package com.app.quantitymeasurement.entity;
 
 import java.io.Serializable;
 import java.time.Instant;
 
-import com.apps.quantitymeasurementapp.repository.QuantityModel;
-
 public class QuantityMeasurementEntity implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    private Instant createdAt;
-    private String operation;
-    private QuantityModel<?> leftOperand;
-    private QuantityModel<?> rightOperand;
-    private String targetUnit;
+	private Long id;
+	private Instant createdAt;
+	private String operation;
+	private QuantityModel<?> leftOperand;
+	private QuantityModel<?> rightOperand;
+	private String targetUnit;
+	private QuantityModel<?> quantityResult;
+	private Double scalarResult;
+	private boolean success;
+	private String errorMessage;
 
-    private QuantityModel<?> quantityResult;
-    private Double scalarResult;
+	public QuantityMeasurementEntity() {
+	}
 
-    private boolean success;
-    private String errorMessage;
+	public QuantityMeasurementEntity(String operation, QuantityModel<?> leftOperand, QuantityModel<?> rightOperand,
+			String targetUnit, QuantityModel<?> quantityResult) {
+		this.createdAt = Instant.now();
+		this.operation = operation;
+		this.leftOperand = leftOperand;
+		this.rightOperand = rightOperand;
+		this.targetUnit = targetUnit;
+		this.quantityResult = quantityResult;
+		this.success = true;
+	}
 
-    public QuantityMeasurementEntity() {
-        this.createdAt = Instant.now();
-    }
+	public QuantityMeasurementEntity(String operation, QuantityModel<?> leftOperand, QuantityModel<?> rightOperand,
+			Double scalarResult) {
+		this.createdAt = Instant.now();
+		this.operation = operation;
+		this.leftOperand = leftOperand;
+		this.rightOperand = rightOperand;
+		this.scalarResult = scalarResult;
+		this.success = true;
+	}
 
-    // Constructor for operations returning quantity
-    public QuantityMeasurementEntity(String operation,
-                                     QuantityModel<?> leftOperand,
-                                     QuantityModel<?> rightOperand,
-                                     String targetUnit,
-                                     QuantityModel<?> quantityResult) {
+	public QuantityMeasurementEntity(String operation, QuantityModel<?> leftOperand, QuantityModel<?> rightOperand,
+			String targetUnit, String errorMessage) {
+		this.createdAt = Instant.now();
+		this.operation = operation;
+		this.leftOperand = leftOperand;
+		this.rightOperand = rightOperand;
+		this.targetUnit = targetUnit;
+		this.success = false;
+		this.errorMessage = errorMessage;
+	}
 
-        this.createdAt = Instant.now();
-        this.operation = operation;
-        this.leftOperand = leftOperand;
-        this.rightOperand = rightOperand;
-        this.targetUnit = targetUnit;
-        this.quantityResult = quantityResult;
-        this.success = true;
-    }
+	public Instant getCreatedAt() {
+		return createdAt;
+	}
 
-    // Constructor for scalar operations (compare / divide)
-    public QuantityMeasurementEntity(String operation,
-                                     QuantityModel<?> leftOperand,
-                                     QuantityModel<?> rightOperand,
-                                     Double scalarResult) {
+	public void setCreatedAt(Instant createdAt) {
+		this.createdAt = createdAt;
+	}
 
-        this.createdAt = Instant.now();
-        this.operation = operation;
-        this.leftOperand = leftOperand;
-        this.rightOperand = rightOperand;
-        this.scalarResult = scalarResult;
-        this.success = true;
-    }
+	public String getOperation() {
+		return operation;
+	}
 
-    // Constructor for failures
-    public QuantityMeasurementEntity(String operation,
-                                     QuantityModel<?> leftOperand,
-                                     QuantityModel<?> rightOperand,
-                                     String targetUnit,
-                                     String errorMessage) {
+	public void setOperation(String operation) {
+		this.operation = operation;
+	}
 
-        this.createdAt = Instant.now();
-        this.operation = operation;
-        this.leftOperand = leftOperand;
-        this.rightOperand = rightOperand;
-        this.targetUnit = targetUnit;
-        this.success = false;
-        this.errorMessage = errorMessage;
-    }
+	public QuantityModel<?> getLeftOperand() {
+		return leftOperand;
+	}
 
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
+	public void setLeftOperand(QuantityModel<?> leftOperand) {
+		this.leftOperand = leftOperand;
+	}
 
-    public String getOperation() {
-        return operation;
-    }
+	public QuantityModel<?> getRightOperand() {
+		return rightOperand;
+	}
 
-    public QuantityModel<?> getLeftOperand() {
-        return leftOperand;
-    }
+	public void setRightOperand(QuantityModel<?> rightOperand) {
+		this.rightOperand = rightOperand;
+	}
 
-    public QuantityModel<?> getRightOperand() {
-        return rightOperand;
-    }
+	public String getTargetUnit() {
+		return targetUnit;
+	}
 
-    public String getTargetUnit() {
-        return targetUnit;
-    }
+	public void setTargetUnit(String targetUnit) {
+		this.targetUnit = targetUnit;
+	}
 
-    public QuantityModel<?> getQuantityResult() {
-        return quantityResult;
-    }
+	public QuantityModel<?> getQuantityResult() {
+		return quantityResult;
+	}
 
-    public Double getScalarResult() {
-        return scalarResult;
-    }
+	public void setQuantityResult(QuantityModel<?> quantityResult) {
+		this.quantityResult = quantityResult;
+	}
 
-    public boolean isSuccess() {
-        return success;
-    }
+	public Double getScalarResult() {
+		return scalarResult;
+	}
 
-    public String getErrorMessage() {
-        return errorMessage;
-    }
+	public void setScalarResult(Double scalarResult) {
+		this.scalarResult = scalarResult;
+	}
+
+	public boolean isSuccess() {
+		return success;
+	}
+
+	public void setSuccess(boolean success) {
+		this.success = success;
+	}
+
+	public String getErrorMessage() {
+		return errorMessage;
+	}
+
+	public void setErrorMessage(String errorMessage) {
+		this.errorMessage = errorMessage;
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public String getMeasurementType() {
+		if (leftOperand != null && leftOperand.getUnit() != null) {
+			return leftOperand.getUnit().getMeasurementType();
+		}
+		if (rightOperand != null && rightOperand.getUnit() != null) {
+			return rightOperand.getUnit().getMeasurementType();
+		}
+		if (quantityResult != null && quantityResult.getUnit() != null) {
+			return quantityResult.getUnit().getMeasurementType();
+		}
+		return null;
+	}
 }
