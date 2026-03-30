@@ -4,27 +4,7 @@
 
 ---
 
-## 📋 Table of Contents
-
-- [Final Architecture](#-final-architecture)
-- [UC1 — Basic Feet Equality](#uc1-basic-feet-equality--the-foundation)
-- [UC2 — Cross-Unit Comparison](#uc2-cross-unit-comparison-feet--inches)
-- [UC3 — Generic Length Class](#uc3-generic-length-class-with-dry-principle)
-- [UC4 — Adding More Units](#uc4-adding-more-units-yards--centimeters)
-- [UC5 — Unit Conversion Operations](#uc5-unit-conversion-operations)
-- [UC6 — Addition (Same & Different Units)](#uc6-addition--same-and-different-units)
-- [UC7 — Addition with Explicit Target Unit](#uc7-addition-with-explicit-target-unit)
-- [UC8 — Standalone Enum with Conversion Responsibility](#uc8-standalone-enum-with-conversion-responsibility)
-- [UC9 — Multi-Category Support](#uc9-multi-category-support-weight-measurements)
-- [UC10 — Generic Architecture](#uc10-generic-architecture--the-breakthrough)
-- [UC11 — Volume Measurements](#uc11-volume-measurements--testing-generic-architecture)
-- [UC12 — Subtraction and Division](#uc12-subtraction-and-division--expanding-arithmetic-operations)
-- [UC13 — Centralized Arithmetic Logic](#uc13-centralized-arithmetic-logic--dry-at-operation-level)
-- [UC14 — Temperature Measurements](#uc14-temperature-measurements--selective-arithmetic-support)
-
----
-
-## 🏗 Final Architecture
+## 🏗 Architecture
 
 ```
 📂 IMeasurable (interface)
@@ -732,5 +712,105 @@ public enum DateUnit implements IMeasurable {
 ```
 
 ---
+## UC16: Database Integration with JDBC for Quantity Measurement Persistence
 
+### What we did
+Extended the N-Tier architecture from UC15 by replacing the in-memory `QuantityMeasurementCacheRepository` with a **JDBC-based database repository** for long-term persistent storage. Also introduced a professional **Maven project structure** with proper package organization by layer.
+
+### What we learned
+- **JDBC (Java Database Connectivity)** — Low-level API for connecting and executing SQL queries on relational databases
+- **Connection Pooling** — Reusing database connections efficiently to reduce overhead and improve performance
+- **Parameterized SQL Queries** — Using `PreparedStatement` with `?` placeholders to prevent SQL injection
+- **Maven Project Structure** — Standard directory layout (`src/main/java`, `src/test/java`, `src/main/resources`)
+- **Configuration Management** — Loading environment-specific settings from `application.properties`
+- **Custom Exception Hierarchy** — `DatabaseException` extending `QuantityMeasurementException` for DB-specific errors
+- **Transaction Management** — Grouping operations as atomic units with rollback on failure
+- **Resource Management** — Proper closing of `ResultSet`, `Statement`, `Connection` using try-with-resources
+- **H2 In-Memory Database** — Lightweight database for isolated unit and integration testing
+- **SLF4J Logging** — Replacing `System.out.println` with structured logging using Logback
+
+### Project Structure
+
+```
+src/
+├── main/java/com/app/quantitymeasurement/
+│   ├── QuantityMeasurementApp.java
+│   ├── controller/
+│   ├── service/
+│   ├── repository/
+│   │   ├── IQuantityMeasurementRepository.java
+│   │   ├── QuantityMeasurementCacheRepository.java
+│   │   └── QuantityMeasurementDatabaseRepository.java  ← New
+│   ├── entity/
+│   ├── exception/
+│   │   └── DatabaseException.java                      ← New
+│   └── util/
+│       ├── ApplicationConfig.java                      ← New
+│       └── ConnectionPool.java                         ← New
+├── main/resources/
+│   ├── application.properties
+│   └── db/schema.sql
+└── test/java/com/app/quantitymeasurement/
+    ├── repository/
+    ├── service/
+    ├── controller/
+    └── integrationTests/
+```
+
+### Key Classes
+
+| Class | Purpose |
+|---|---|
+| `ApplicationConfig` | Loads DB config from `application.properties` |
+| `ConnectionPool` | Manages reusable pool of JDBC connections |
+| `DatabaseException` | Custom exception for database-specific errors |
+| `QuantityMeasurementDatabaseRepository` | JDBC implementation of `IQuantityMeasurementRepository` |
+
+### Problem solved
+
+```java
+// Before UC16 — lost data on restart
+IQuantityMeasurementRepository repo = new QuantityMeasurementCacheRepository();
+// Data gone when app shuts down ❌
+
+// After UC16 — persistent storage
+IQuantityMeasurementRepository repo = new QuantityMeasurementDatabaseRepository();
+// Data survives restarts, queryable, scalable ✅
+
+// Switch via config — no code change needed!
+repository.type=database   // in application.properties
+```
+
+### New Repository Methods
+
+| Method | Purpose |
+|---|---|
+| `save(entity)` | Persists entity to database |
+| `getAllMeasurements()` | Retrieves all stored records |
+| `getMeasurementsByOperation()` | Filters by operation type |
+| `getMeasurementsByType()` | Filters by measurement category |
+| `getTotalCount()` | Returns total number of records |
+| `deleteAll()` | Removes all records (useful for testing) |
+| `getPoolStatistics()` | Returns connection pool status |
+
+### Maven Commands
+
+```bash
+mvn clean compile     # Build the project
+mvn clean test        # Run all tests
+mvn exec:java         # Run the application
+mvn clean package     # Create executable JAR
+```
+
+### Advantages over UC15
+
+- Data **survives application restarts** — no more lost history
+- **SQL queries** enable filtering, aggregation, and reporting
+- **Connection pooling** improves performance under load
+- **H2 database** enables fast, isolated, reproducible tests
+- **SQL injection prevented** via parameterized queries
+- Easy to **swap to MySQL/PostgreSQL** — just change `application.properties`
+- All UC1–UC15 tests **still pass** — behavior unchanged
+
+---
 *Built with ❤️ using Test-Driven Development and iterative design.*
