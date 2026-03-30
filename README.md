@@ -733,4 +733,80 @@ public enum DateUnit implements IMeasurable {
 
 ---
 
+## UC15: N-Tier Architecture Refactoring
+
+### What we did
+Refactored the monolithic `QuantityMeasurementApp` into a professional **4-layer N-Tier architecture** by separating concerns into distinct layers.
+
+### What we learned
+- **N-Tier Architecture** — Organizing application into distinct layers with clear responsibilities
+- **DTOs (Data Transfer Objects)** — Standardized objects for transferring data between layers
+- **Singleton Pattern** — Single instance of repository across the application
+- **Factory Pattern** — Creating controller and service instances
+- **Facade Pattern** — Controller as a simplified interface hiding service complexity
+- **Dependency Injection** — Injecting dependencies instead of creating them internally
+- **Interface Segregation Principle** — Focused interfaces for service and repository layers
+- **Immutability** — `QuantityMeasurementEntity` is immutable after creation
+- **Custom Exceptions** — `QuantityMeasurementException` for centralized error handling
+- **Serialization** — Persisting operation history to disk across restarts
+
+### Architecture
+
+```
+QuantityMeasurementApp          → Entry point, initializes layers
+        │
+QuantityMeasurementController   → Handles requests, delegates to service
+        │
+QuantityMeasurementServiceImpl  → Core business logic
+        │
+QuantityMeasurementCacheRepository → In-memory cache + disk persistence
+```
+
+### Key Classes
+
+| Class | Layer | Purpose |
+|---|---|---|
+| `QuantityMeasurementApp` | Application | Entry point |
+| `QuantityMeasurementController` | Controller | Orchestration & presentation |
+| `QuantityMeasurementServiceImpl` | Service | Business logic |
+| `QuantityDTO` | Entity | Input/output data transfer |
+| `QuantityModel<U>` | Entity | Internal service model |
+| `QuantityMeasurementEntity` | Entity | Persistence & history |
+| `QuantityMeasurementCacheRepository` | Repository | In-memory + disk storage |
+| `QuantityMeasurementException` | Exception | Centralized error handling |
+
+### Problem solved
+
+```java
+// Before UC15 — everything in one class
+public class QuantityMeasurementApp {
+    // UI logic + business logic + data all mixed together ❌
+}
+
+// After UC15 — clean separation
+QuantityDTO input = new QuantityDTO(1.0, QuantityDTO.LengthUnit.FEET);
+QuantityDTO result = service.convert(input, QuantityDTO.LengthUnit.INCHES);
+// Controller → Service → Repository — each layer has one job ✅
+```
+
+### Design Patterns Applied
+
+| Pattern | Where |
+|---|---|
+| Singleton | `QuantityMeasurementCacheRepository` |
+| Factory | `QuantityMeasurementApp` |
+| Facade | `QuantityMeasurementController` |
+| Dependency Injection | Controller ← Service ← Repository |
+
+### Advantages over UC14
+
+- Business logic now **independently testable** without UI
+- Service layer **reusable** across CLI, REST API, GUI
+- Error handling is **centralized** and consistent
+- Clear **data flow** through standardized `QuantityDTO`
+- **Spring/Guice ready** — dependency injection prepared
+- All UC1–UC14 tests **still pass** — behavior unchanged
+
+---
+
 *Built with ❤️ using Test-Driven Development and iterative design.*
