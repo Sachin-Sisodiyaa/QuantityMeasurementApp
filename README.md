@@ -4,27 +4,7 @@
 
 ---
 
-## 📋 Table of Contents
-
-- [Final Architecture](#-final-architecture)
-- [UC1 — Basic Feet Equality](#uc1-basic-feet-equality--the-foundation)
-- [UC2 — Cross-Unit Comparison](#uc2-cross-unit-comparison-feet--inches)
-- [UC3 — Generic Length Class](#uc3-generic-length-class-with-dry-principle)
-- [UC4 — Adding More Units](#uc4-adding-more-units-yards--centimeters)
-- [UC5 — Unit Conversion Operations](#uc5-unit-conversion-operations)
-- [UC6 — Addition (Same & Different Units)](#uc6-addition--same-and-different-units)
-- [UC7 — Addition with Explicit Target Unit](#uc7-addition-with-explicit-target-unit)
-- [UC8 — Standalone Enum with Conversion Responsibility](#uc8-standalone-enum-with-conversion-responsibility)
-- [UC9 — Multi-Category Support](#uc9-multi-category-support-weight-measurements)
-- [UC10 — Generic Architecture](#uc10-generic-architecture--the-breakthrough)
-- [UC11 — Volume Measurements](#uc11-volume-measurements--testing-generic-architecture)
-- [UC12 — Subtraction and Division](#uc12-subtraction-and-division--expanding-arithmetic-operations)
-- [UC13 — Centralized Arithmetic Logic](#uc13-centralized-arithmetic-logic--dry-at-operation-level)
-- [UC14 — Temperature Measurements](#uc14-temperature-measurements--selective-arithmetic-support)
-
----
-
-## 🏗 Final Architecture
+## 🏗 Architecture
 
 ```
 📂 IMeasurable (interface)
