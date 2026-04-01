@@ -1,13 +1,14 @@
-
 spring:
   application:
     name: quantity-measurement-app
+  config:
+    import: optional:file:./secrets/oauth-secrets.properties
 
   datasource:
-    url: jdbc:h2:mem:quantitymeasurementdb;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+    url: jdbc:mysql://localhost:3306/quantitymeasurementdb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Kolkata
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${DB_USERNAME:root}
+    password: S@18052004
     hikari:
       maximum-pool-size: 10
       minimum-idle: 2
@@ -16,20 +17,13 @@ spring:
       max-lifetime: 1800000
 
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
       ddl-auto: update
     show-sql: true
     properties:
       hibernate:
         format_sql: true
-
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-      settings:
-        web-allow-others: false
 
 logging:
   level:
@@ -53,3 +47,10 @@ management:
   endpoint:
     health:
       show-details: always
+
+auth:
+  jwt:
+    secret: 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
+    expiration-minutes: 180
+  oauth2:
+    redirect-uri: ${FRONTEND_GOOGLE_REDIRECT:http://localhost:3000/oauth-success}
