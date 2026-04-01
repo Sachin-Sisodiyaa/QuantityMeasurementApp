@@ -20,7 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @WithMockUser
-class QuantityMeasurementAppTests {
+class QuantityMeasurementAppApplicationTests {
 
     @Autowired
     private MockMvc mockMvc;
