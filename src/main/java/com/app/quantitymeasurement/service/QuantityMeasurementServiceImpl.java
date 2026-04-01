@@ -5,9 +5,8 @@ import com.app.quantitymeasurement.dto.QuantityMeasurementDTO;
 import com.app.quantitymeasurement.exception.QuantityMeasurementException;
 import com.app.quantitymeasurement.model.QuantityMeasurementEntity;
 import com.app.quantitymeasurement.repository.QuantityMeasurementRepository;
+import com.app.quantitymeasurement.service.MeasurementCalculator.MeasurementResult;
 import com.app.quantitymeasurement.unit.IMeasurable;
-import com.app.quantitymeasurement.unit.Quantity;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,10 +32,10 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
             IMeasurable unit1 = IMeasurable.getUnitByName(quantity1.getUnit(), quantity1.getMeasurementType());
             IMeasurable unit2 = IMeasurable.getUnitByName(quantity2.getUnit(), quantity2.getMeasurementType());
 
-            Quantity<IMeasurable> q1 = new Quantity<>(quantity1.getValue(), unit1);
-            Quantity<IMeasurable> q2 = new Quantity<>(quantity2.getValue(), unit2);
-
-            boolean isEqual = q1.equals(q2);
+            boolean isEqual = MeasurementCalculator.areEqual(
+                    quantity1.getValue(), unit1,
+                    quantity2.getValue(), unit2
+            );
 
             populateEntity(entity, quantity1, quantity2, "compare");
             entity.setResultString(String.valueOf(isEqual));
@@ -63,7 +62,7 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
             IMeasurable sourceUnit = IMeasurable.getUnitByName(quantity1.getUnit(), quantity1.getMeasurementType());
             IMeasurable targetUnit = IMeasurable.getUnitByName(quantity2.getUnit(), quantity2.getMeasurementType());
 
-            double convertedValue = Quantity.convert(quantity1.getValue(), sourceUnit, targetUnit);
+            double convertedValue = MeasurementCalculator.convert(quantity1.getValue(), sourceUnit, targetUnit);
 
             populateEntity(entity, quantity1, quantity2, "convert");
             entity.setResultValue(convertedValue);
@@ -88,17 +87,17 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
 
             IMeasurable unit1 = IMeasurable.getUnitByName(quantity1.getUnit(), quantity1.getMeasurementType());
             IMeasurable unit2 = IMeasurable.getUnitByName(quantity2.getUnit(), quantity2.getMeasurementType());
-            IMeasurable targetUnitObj = unit1;
 
-            Quantity<IMeasurable> q1 = new Quantity<>(quantity1.getValue(), unit1);
-            Quantity<IMeasurable> q2 = new Quantity<>(quantity2.getValue(), unit2);
-
-            Quantity<IMeasurable> result = q1.add(q2, targetUnitObj);
+            MeasurementResult result = MeasurementCalculator.add(
+                    quantity1.getValue(), unit1,
+                    quantity2.getValue(), unit2,
+                    unit1
+            );
 
             populateEntity(entity, quantity1, quantity2, "add");
-            entity.setResultValue(result.getValue());
-            entity.setResultUnit(result.getUnit().getUnitName());
-            entity.setResultMeasurementType(result.getUnit().getMeasurementType());
+            entity.setResultValue(result.value());
+            entity.setResultUnit(result.unit().getUnitName());
+            entity.setResultMeasurementType(result.unit().getMeasurementType());
             entity.setError(false);
             repository.save(entity);
             logger.debug("ADD persisted");
@@ -120,17 +119,17 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
 
             IMeasurable unit1 = IMeasurable.getUnitByName(quantity1.getUnit(), quantity1.getMeasurementType());
             IMeasurable unit2 = IMeasurable.getUnitByName(quantity2.getUnit(), quantity2.getMeasurementType());
-            IMeasurable targetUnitObj = unit1;
 
-            Quantity<IMeasurable> q1 = new Quantity<>(quantity1.getValue(), unit1);
-            Quantity<IMeasurable> q2 = new Quantity<>(quantity2.getValue(), unit2);
-
-            Quantity<IMeasurable> result = q1.subtract(q2, targetUnitObj);
+            MeasurementResult result = MeasurementCalculator.subtract(
+                    quantity1.getValue(), unit1,
+                    quantity2.getValue(), unit2,
+                    unit1
+            );
 
             populateEntity(entity, quantity1, quantity2, "subtract");
-            entity.setResultValue(result.getValue());
-            entity.setResultUnit(result.getUnit().getUnitName());
-            entity.setResultMeasurementType(result.getUnit().getMeasurementType());
+            entity.setResultValue(result.value());
+            entity.setResultUnit(result.unit().getUnitName());
+            entity.setResultMeasurementType(result.unit().getMeasurementType());
             entity.setError(false);
             repository.save(entity);
             logger.debug("SUBTRACT persisted");
@@ -153,10 +152,10 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
             IMeasurable unit1 = IMeasurable.getUnitByName(quantity1.getUnit(), quantity1.getMeasurementType());
             IMeasurable unit2 = IMeasurable.getUnitByName(quantity2.getUnit(), quantity2.getMeasurementType());
 
-            Quantity<IMeasurable> q1 = new Quantity<>(quantity1.getValue(), unit1);
-            Quantity<IMeasurable> q2 = new Quantity<>(quantity2.getValue(), unit2);
-
-            double result = q1.divide(q2);
+            double result = MeasurementCalculator.divide(
+                    quantity1.getValue(), unit1,
+                    quantity2.getValue(), unit2
+            );
 
             populateEntity(entity, quantity1, quantity2, "divide");
             entity.setResultValue(result);
