@@ -1,30 +1,11 @@
+
 # 📐 Quantity Measurement App
 
 > A progressive journey through software design principles — from basic equality comparisons to advanced arithmetic operations with selective support.
 
 ---
 
-## 📋 Table of Contents
-
-- [Final Architecture](#-final-architecture)
-- [UC1 — Basic Feet Equality](#uc1-basic-feet-equality--the-foundation)
-- [UC2 — Cross-Unit Comparison](#uc2-cross-unit-comparison-feet--inches)
-- [UC3 — Generic Length Class](#uc3-generic-length-class-with-dry-principle)
-- [UC4 — Adding More Units](#uc4-adding-more-units-yards--centimeters)
-- [UC5 — Unit Conversion Operations](#uc5-unit-conversion-operations)
-- [UC6 — Addition (Same & Different Units)](#uc6-addition--same-and-different-units)
-- [UC7 — Addition with Explicit Target Unit](#uc7-addition-with-explicit-target-unit)
-- [UC8 — Standalone Enum with Conversion Responsibility](#uc8-standalone-enum-with-conversion-responsibility)
-- [UC9 — Multi-Category Support](#uc9-multi-category-support-weight-measurements)
-- [UC10 — Generic Architecture](#uc10-generic-architecture--the-breakthrough)
-- [UC11 — Volume Measurements](#uc11-volume-measurements--testing-generic-architecture)
-- [UC12 — Subtraction and Division](#uc12-subtraction-and-division--expanding-arithmetic-operations)
-- [UC13 — Centralized Arithmetic Logic](#uc13-centralized-arithmetic-logic--dry-at-operation-level)
-- [UC14 — Temperature Measurements](#uc14-temperature-measurements--selective-arithmetic-support)
-
----
-
-## 🏗 Final Architecture
+## 🏗 Architecture
 
 ```
 📂 IMeasurable (interface)
@@ -732,38 +713,359 @@ public enum DateUnit implements IMeasurable {
 ```
 
 ---
+## UC16: Database Integration with JDBC for Quantity Measurement Persistence
 
-## **Summary Timeline**
+### What we did
+Extended the N-Tier architecture from UC15 by replacing the in-memory `QuantityMeasurementCacheRepository` with a **JDBC-based database repository** for long-term persistent storage. Also introduced a professional **Maven project structure** with proper package organization by layer.
+
+### What we learned
+- **JDBC (Java Database Connectivity)** — Low-level API for connecting and executing SQL queries on relational databases
+- **Connection Pooling** — Reusing database connections efficiently to reduce overhead and improve performance
+- **Parameterized SQL Queries** — Using `PreparedStatement` with `?` placeholders to prevent SQL injection
+- **Maven Project Structure** — Standard directory layout (`src/main/java`, `src/test/java`, `src/main/resources`)
+- **Configuration Management** — Loading environment-specific settings from `application.properties`
+- **Custom Exception Hierarchy** — `DatabaseException` extending `QuantityMeasurementException` for DB-specific errors
+- **Transaction Management** — Grouping operations as atomic units with rollback on failure
+- **Resource Management** — Proper closing of `ResultSet`, `Statement`, `Connection` using try-with-resources
+- **H2 In-Memory Database** — Lightweight database for isolated unit and integration testing
+- **SLF4J Logging** — Replacing `System.out.println` with structured logging using Logback
+
+### Project Structure
 
 ```
-UC1: Basic equality (Feet)
-  ↓
-UC2: Cross-unit comparison (Feet + Inches)
-  ↓
-UC3: Generic Length class + DRY principle
-  ↓
-UC4: More units (Yards, Centimeters)
-  ↓
-UC5: Unit conversion operations
-  ↓
-UC6: Addition (same/different units)
-  ↓
-UC7: Addition with explicit target unit
-  ↓
-UC8: Standalone enum with conversion responsibility
-  ↓
-UC9: Multi-category support (Weight) - Duplication problem!
-  ↓
-UC10: Generic architecture - Problem solved!
-  ↓
-UC11: Volume measurements - Architecture validation
-  ↓
-UC12: Subtraction and Division - Expanding arithmetic
-  ↓
-UC13: Centralized arithmetic logic - DRY at operation level
-  ↓
-UC14: Temperature with selective arithmetic - Advanced constraints
+src/
+├── main/java/com/app/quantitymeasurement/
+│   ├── QuantityMeasurementApp.java
+│   ├── controller/
+│   ├── service/
+│   ├── repository/
+│   │   ├── IQuantityMeasurementRepository.java
+│   │   ├── QuantityMeasurementCacheRepository.java
+│   │   └── QuantityMeasurementDatabaseRepository.java  ← New
+│   ├── entity/
+│   ├── exception/
+│   │   └── DatabaseException.java                      ← New
+│   └── util/
+│       ├── ApplicationConfig.java                      ← New
+│       └── ConnectionPool.java                         ← New
+├── main/resources/
+│   ├── application.properties
+│   └── db/schema.sql
+└── test/java/com/app/quantitymeasurement/
+    ├── repository/
+    ├── service/
+    ├── controller/
+    └── integrationTests/
 ```
+
+### Key Classes
+
+| Class | Purpose |
+|---|---|
+| `ApplicationConfig` | Loads DB config from `application.properties` |
+| `ConnectionPool` | Manages reusable pool of JDBC connections |
+| `DatabaseException` | Custom exception for database-specific errors |
+| `QuantityMeasurementDatabaseRepository` | JDBC implementation of `IQuantityMeasurementRepository` |
+
+### Problem solved
+
+```java
+// Before UC16 — lost data on restart
+IQuantityMeasurementRepository repo = new QuantityMeasurementCacheRepository();
+// Data gone when app shuts down ❌
+
+// After UC16 — persistent storage
+IQuantityMeasurementRepository repo = new QuantityMeasurementDatabaseRepository();
+// Data survives restarts, queryable, scalable ✅
+
+// Switch via config — no code change needed!
+repository.type=database   // in application.properties
+```
+
+### New Repository Methods
+
+| Method | Purpose |
+|---|---|
+| `save(entity)` | Persists entity to database |
+| `getAllMeasurements()` | Retrieves all stored records |
+| `getMeasurementsByOperation()` | Filters by operation type |
+| `getMeasurementsByType()` | Filters by measurement category |
+| `getTotalCount()` | Returns total number of records |
+| `deleteAll()` | Removes all records (useful for testing) |
+| `getPoolStatistics()` | Returns connection pool status |
+
+### Maven Commands
+
+```bash
+mvn clean compile     # Build the project
+mvn clean test        # Run all tests
+mvn exec:java         # Run the application
+mvn clean package     # Create executable JAR
+```
+
+### Advantages over UC15
+
+- Data **survives application restarts** — no more lost history
+- **SQL queries** enable filtering, aggregation, and reporting
+- **Connection pooling** improves performance under load
+- **H2 database** enables fast, isolated, reproducible tests
+- **SQL injection prevented** via parameterized queries
+- Easy to **swap to MySQL/PostgreSQL** — just change `application.properties`
+- All UC1–UC15 tests **still pass** — behavior unchanged
+
+---
+## UC17: Spring Framework Integration - REST Services and JPA
+
+### What we did
+Transformed the standalone Quantity Measurement Application into a **Spring Boot REST service** by replacing manual JDBC with Spring Data JPA, exposing functionality through RESTful HTTP endpoints, and adding centralized exception handling, API documentation, and integration testing.
+
+### What we learned
+- **Spring Boot Auto-Configuration** — Automatic bean registration and embedded Tomcat server with minimal setup
+- **Spring Data JPA** — Replacing manual JDBC with declarative query methods by extending `JpaRepository`
+- **REST Controllers** — Using `@RestController`, `@GetMapping`, `@PostMapping` to expose HTTP endpoints
+- **Dependency Injection** — Spring container managing beans via `@Service`, `@Repository`, `@Autowired`
+- **@Transactional** — Declarative transaction management with automatic rollback on exceptions
+- **Global Exception Handling** — Centralized error responses using `@ControllerAdvice` and `@ExceptionHandler`
+- **DTO Pattern** — `QuantityDTO`, `QuantityMeasurementDTO`, `QuantityInputDTO` for clean API communication
+- **Bean Validation** — Input validation using `@NotNull`, `@NotEmpty`, `@Pattern`, `@AssertTrue`
+- **Swagger/OpenAPI** — Auto-generated interactive API documentation using `@Operation`, `@Tag`
+- **MockMvc Testing** — Testing REST endpoints using `@WebMvcTest` and `@MockBean` without full context
+- **Spring Boot Actuator** — Built-in health checks and metrics at `/actuator/health`
+- **Spring Security Basics** — Security configuration foundation for future authentication
+- **SLF4J + Logback** — Structured logging replacing `System.out.println`
+- **Maven Surefire Report** — Generating rich HTML test reports
+
+### Architecture
+
+```
+HTTP Request
+     │
+@RestController (QuantityMeasurementController)
+     │  @PostMapping / @GetMapping
+     ▼
+@Service (QuantityMeasurementServiceImpl)
+     │  Business logic + @Transactional
+     ▼
+@Repository (QuantityMeasurementRepository)
+     │  extends JpaRepository<QuantityMeasurementEntity, Long>
+     ▼
+H2 / MySQL Database (via Spring Data JPA)
+```
+
+### Key Classes
+
+| Class | Purpose |
+|---|---|
+| `QuantityMeasurementAppApplication` | Spring Boot entry point (`@SpringBootApplication`) |
+| `QuantityMeasurementController` | REST controller — exposes API endpoints |
+| `QuantityMeasurementServiceImpl` | Service layer with business logic |
+| `QuantityMeasurementRepository` | Spring Data JPA repository |
+| `QuantityMeasurementEntity` | JPA entity mapped to DB table |
+| `QuantityInputDTO` | Input DTO for API requests |
+| `QuantityMeasurementDTO` | Output DTO for API responses |
+| `GlobalExceptionHandler` | Centralized error handling via `@ControllerAdvice` |
+| `SecurityConfig` | Basic Spring Security configuration |
+| `OperationType` | Enum for ADD, SUBTRACT, COMPARE, CONVERT, DIVIDE |
+
+### REST API Endpoints
+
+| Method | Endpoint | Operation |
+|---|---|---|
+| POST | `/api/v1/quantities/compare` | Compare two quantities |
+| POST | `/api/v1/quantities/convert` | Convert unit |
+| POST | `/api/v1/quantities/add` | Add two quantities |
+| POST | `/api/v1/quantities/subtract` | Subtract quantities |
+| POST | `/api/v1/quantities/divide` | Divide quantities |
+| GET | `/api/v1/quantities/history/operation/{op}` | Get history by operation |
+| GET | `/api/v1/quantities/history/type/{type}` | Get history by measurement type |
+| GET | `/api/v1/quantities/history/errored` | Get error history |
+| GET | `/api/v1/quantities/count/{operation}` | Get operation count |
+
+### Problem solved
+
+```java
+// Before UC17 — manual JDBC boilerplate
+Connection conn = pool.getConnection();
+PreparedStatement ps = conn.prepareStatement("INSERT INTO ...");
+ps.setString(1, entity.getOperation());
+// ... many more lines ❌
+
+// After UC17 — Spring Data JPA
+@Repository
+public interface QuantityMeasurementRepository
+    extends JpaRepository<QuantityMeasurementEntity, Long> {
+    List<QuantityMeasurementEntity> findByOperation(String operation);
+} // Zero SQL needed ✅
+```
+
+### Maven Commands
+
+```bash
+mvn clean compile          # Build project
+mvn spring-boot:run        # Run application
+mvn test                   # Run all tests
+mvn clean package          # Package as JAR
+mvn surefire-report:report # Generate test reports
+```
+
+### URLs After Starting App
+
+| URL | Purpose |
+|---|---|
+| `http://localhost:8080/api/v1/quantities/` | REST API |
+| `http://localhost:8080/h2-console` | H2 database console |
+| `http://localhost:8080/swagger-ui.html` | Swagger API documentation |
+| `http://localhost:8080/actuator/health` | Health check |
+
+### Advantages over UC16
+
+- **Zero SQL boilerplate** — Spring Data JPA auto-generates queries from method names
+- **Embedded server** — No external Tomcat/server setup needed
+- **Auto-configured** — H2, JPA, security all auto-configured via `application.properties`
+- **Interactive API docs** — Swagger UI for testing endpoints directly in browser
+- **Centralized error handling** — `@ControllerAdvice` returns consistent JSON error responses
+- **Declarative transactions** — `@Transactional` replaces manual commit/rollback
+- **Spring Security ready** — Foundation for future JWT/OAuth2 authentication
+- All UC1–UC16 tests **still pass** — business logic unchanged
 ---
 
-*Built with ❤️ using Test-Driven Development and iterative design.*
+# 🔐 UC18: Google Authentication & User Management
+
+> **Spring Backend — Quantity Measurement App**
+> Concepts covered: **Spring Security · JWT · OAuth 2.0**
+> Author: Vishal Bhakare | Mar 20
+
+---
+
+## What we did
+- Integrated **Google OAuth 2.0** login — users sign in with their Google account
+- Issued a signed **JWT token** after successful Google login
+- Created a **JWT filter** that validates the bearer token on every protected request
+- Persisted Google user profile (email, name, picture) to the database on first login
+- Added **role-based access** (`USER` / `ADMIN`) with stateless session management
+
+---
+
+## What we learned
+
+### Spring Security
+> A filter-chain-based security framework that handles authentication (who are you?) and authorization (what can you do?) before the request ever reaches the controller.
+
+```
+HTTP Request → JwtAuthFilter → OAuth2LoginFilter → Controller
+```
+
+### JWT (JSON Web Token)
+> A compact, self-contained token that carries identity claims, digitally signed so it cannot be tampered with.
+
+```
+eyJhbGciOiJIUzI1NiJ9 . eyJzdWIiOiJ1c2VyQGdtYWlsLmNvbSJ9 . SflKxwRJSMeKK
+      HEADER                       PAYLOAD                      SIGNATURE
+   (algorithm)             (sub, iat, exp, role, name)       (HMAC-SHA256)
+```
+
+### OAuth 2.0
+> An authorization framework that lets users grant our app access to their Google profile — without sharing their password.
+
+| Role | Description | In our app |
+|------|-------------|------------|
+| Resource Owner | The user | Vishal (Google account holder) |
+| Client | Our app | Quantity Measurement Backend |
+| Authorization Server | Issues tokens | Google OAuth Server |
+| Resource Server | Holds user data | Google People API |
+
+---
+
+## Flow
+
+```
+User clicks "Login with Google"
+        │
+        ▼
+Google shows consent screen
+        │
+        ▼
+Google returns Auth Code to our callback URL
+        │
+        ▼
+Our app exchanges code → Access Token → fetches profile (email, name, picture)
+        │
+        ▼
+Save/update User in DB → Generate JWT → return to client
+        │
+        ▼
+Client sends JWT in every request:  Authorization: Bearer <token>
+        │
+        ▼
+JwtAuthFilter validates → sets SecurityContext → Controller runs
+```
+
+---
+
+## Key implementations
+
+### Security Configuration
+```java
+http
+    .csrf(AbstractHttpConfigurer::disable)
+    .sessionManagement(s -> s.sessionCreationPolicy(STATELESS))
+    .authorizeHttpRequests(auth -> auth
+        .requestMatchers("/auth/**", "/oauth2/**").permitAll()
+        .requestMatchers("/admin/**").hasRole("ADMIN")
+        .anyRequest().authenticated()
+    )
+    .oauth2Login(oauth2 -> oauth2
+        .userInfoEndpoint(u -> u.userService(oAuth2UserService))
+        .successHandler(oAuth2SuccessHandler)
+    )
+    .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+```
+
+### JWT Generation
+```java
+public String generateToken(String email, String role, String name) {
+    return Jwts.builder()
+        .setSubject(email)
+        .claim("role", role)
+        .claim("name", name)
+        .setIssuedAt(new Date())
+        .setExpiration(new Date(System.currentTimeMillis() + expiration))
+        .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+        .compact();
+}
+```
+
+### JWT Filter
+```java
+// Runs before every request
+String jwt   = authHeader.substring(7);
+String email = jwtUtil.extractEmail(jwt);
+
+if (jwtUtil.isTokenValid(jwt, email)) {
+    // Set authentication in SecurityContext
+    SecurityContextHolder.getContext().setAuthentication(authToken);
+}
+```
+
+### Save or Create User on Login
+```java
+public User findOrCreateUser(String email, String name, String picture) {
+    return userRepository.findByEmail(email)
+        .map(user -> { user.setName(name); return userRepository.save(user); })
+        .orElseGet(() -> userRepository.save(new User(email, name, picture, Role.USER)));
+}
+```
+
+---
+
+## Why JWT over Sessions?
+
+| | Sessions | JWT |
+|--|----------|-----|
+| **Storage** | Server-side | Client-side |
+| **Scalability** | Needs shared store | Stateless — any server |
+| **Performance** | DB lookup per request | Local crypto validation |
+| **Best for** | Traditional web apps | REST APIs / SPAs |
+
+---
+
