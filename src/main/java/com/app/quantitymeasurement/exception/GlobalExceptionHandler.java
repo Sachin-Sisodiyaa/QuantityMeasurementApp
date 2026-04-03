@@ -51,8 +51,17 @@ public class GlobalExceptionHandler {
             AuthException ex, HttpServletRequest request) {
 
         Map<String, Object> body = buildErrorBody(
-                HttpStatus.UNAUTHORIZED, "Authentication Error", ex.getMessage(), request.getRequestURI());
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+                ex.getStatus(), "Authentication Error", ex.getMessage(), request.getRequestURI());
+        return ResponseEntity.status(ex.getStatus()).body(body);
+    }
+
+    @ExceptionHandler(ArithmeticException.class)
+    public ResponseEntity<Map<String, Object>> handleArithmeticException(
+            ArithmeticException ex, HttpServletRequest request) {
+
+        Map<String, Object> body = buildErrorBody(
+                HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage(), request.getRequestURI());
+        return ResponseEntity.badRequest().body(body);
     }
 
     @ExceptionHandler(Exception.class)
