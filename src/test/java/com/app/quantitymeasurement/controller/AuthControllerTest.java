@@ -87,7 +87,7 @@ class AuthControllerTest {
                                   }
                                 }
                                 """))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
 
         mockMvc.perform(post("/api/v1/quantities/add")
                         .header("Authorization", "Bearer " + token)
@@ -149,6 +149,34 @@ class AuthControllerTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.message").value("Missing token or email in OAuth success redirect"))
                 .andExpect(jsonPath("$.path").value("/oauth-success"));
+    }
+
+    @Test
+    void meWithoutTokenReturnsUnauthorized() throws Exception {
+        mockMvc.perform(get("/api/v1/auth/me"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void registerDuplicateEmailReturnsConflict() throws Exception {
+        String registerBody = """
+                {
+                  "fullName": "Rudresh Sharma",
+                  "email": "rudresh@example.com",
+                  "password": "Password@123",
+                  "mobileNumber": "9876543210"
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(registerBody))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(registerBody))
+                .andExpect(status().isConflict());
     }
 
     @Test
