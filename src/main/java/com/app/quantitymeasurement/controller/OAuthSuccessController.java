@@ -2,8 +2,10 @@ package com.app.quantitymeasurement.controller;
 
 import com.app.quantitymeasurement.auth.AuthResponse;
 import com.app.quantitymeasurement.auth.UserProfileResponse;
+import com.app.quantitymeasurement.exception.AuthException;
 import com.app.quantitymeasurement.security.JwtService;
 import com.app.quantitymeasurement.service.AuthService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
@@ -34,7 +36,19 @@ public class OAuthSuccessController {
             ));
         }
 
-        UserProfileResponse user = authService.getCurrentUser(email);
+        String normalizedEmail = email.trim().toLowerCase();
+        String tokenEmail;
+        try {
+            tokenEmail = jwtService.extractUsername(token);
+        } catch (Exception ex) {
+            throw new AuthException(HttpStatus.UNAUTHORIZED, "Invalid OAuth token");
+        }
+
+        if (!normalizedEmail.equalsIgnoreCase(tokenEmail) || !jwtService.isTokenValid(token, normalizedEmail)) {
+            throw new AuthException(HttpStatus.UNAUTHORIZED, "Invalid OAuth token for provided user");
+        }
+
+        UserProfileResponse user = authService.getCurrentUser(normalizedEmail);
         AuthResponse authResponse = new AuthResponse(
                 token,
                 "Bearer",
