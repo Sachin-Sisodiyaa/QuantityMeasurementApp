@@ -10,6 +10,7 @@ import com.app.quantitymeasurement.model.UserEntity;
 import com.app.quantitymeasurement.model.UserRole;
 import com.app.quantitymeasurement.repository.UserRepository;
 import com.app.quantitymeasurement.security.JwtService;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -37,7 +38,7 @@ public class AuthService {
     public AuthResponse register(RegisterRequest request) {
         String email = request.getEmail().trim().toLowerCase();
         if (userRepository.existsByEmailIgnoreCase(email)) {
-            throw new AuthException("User already exists with email: " + email);
+            throw new AuthException(HttpStatus.CONFLICT, "User already exists with email: " + email);
         }
 
         UserEntity user = new UserEntity();
