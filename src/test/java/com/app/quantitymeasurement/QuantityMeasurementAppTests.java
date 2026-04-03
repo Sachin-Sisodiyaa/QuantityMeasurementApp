@@ -227,7 +227,7 @@ class QuantityMeasurementAppApplicationTests {
     }
 
     @Test
-    void testDivisionByZeroReturns500() throws Exception {
+    void testDivisionByZeroReturns400() throws Exception {
         QuantityDTO q1 = new QuantityDTO(1.0, "FEET", "LengthUnit");
         QuantityDTO q2 = new QuantityDTO(0.0, "INCHES", "LengthUnit");
         QuantityInputDTO input = new QuantityInputDTO(q1, q2);
@@ -235,7 +235,7 @@ class QuantityMeasurementAppApplicationTests {
         mockMvc.perform(post("/api/v1/quantities/divide")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(input)))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
