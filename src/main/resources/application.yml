@@ -54,3 +54,7 @@ auth:
     expiration-minutes: 180
   oauth2:
     redirect-uri: ${FRONTEND_GOOGLE_REDIRECT:http://localhost:3000/oauth-success}
+
+app:
+  cors:
+    allowed-origins: ${FRONTEND_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:4200}
