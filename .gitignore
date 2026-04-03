@@ -5,7 +5,8 @@ target/
 !**/src/test/**/target/
 
 ### secret ###
-secretkeys/
+secrets/
+secrets/oauth-secrets.properties
 
 ### STS ###
 .apt_generated
