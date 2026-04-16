@@ -7,6 +7,8 @@ target/
 ### secret ###
 secrets/
 secrets/oauth-secrets.properties
+*.env
+*.env.local
 
 ### STS ###
 .apt_generated
