@@ -35,6 +35,16 @@ final class MeasurementCalculator {
         return new MeasurementResult(roundToTwoDecimals(targetUnit.convertFromBaseUnit(result)), targetUnit);
     }
 
+    static MeasurementResult multiply(double leftValue, IMeasurable leftUnit, double rightValue, IMeasurable rightUnit) {
+        validatePair(leftValue, leftUnit, rightValue, rightUnit);
+        leftUnit.validateOperationSupport("MULTIPLY");
+        rightUnit.validateOperationSupport("MULTIPLY");
+
+        double rightValueInLeftUnit = leftUnit.convertFromBaseUnit(toBaseValue(rightValue, rightUnit));
+        double result = roundToTwoDecimals(leftValue * rightValueInLeftUnit);
+        return new MeasurementResult(result, leftUnit, leftUnit.getUnitName() + "^2");
+    }
+
     static double divide(double leftValue, IMeasurable leftUnit, double rightValue, IMeasurable rightUnit) {
         validatePair(leftValue, leftUnit, rightValue, rightUnit);
         leftUnit.validateOperationSupport("DIVIDE");
@@ -77,7 +87,7 @@ final class MeasurementCalculator {
     }
 
     private static void ensureCompatible(IMeasurable leftUnit, IMeasurable rightUnit) {
-        if (!leftUnit.getClass().equals(rightUnit.getClass())) {
+        if (!leftUnit.getMeasurementType().equalsIgnoreCase(rightUnit.getMeasurementType())) {
             throw new IllegalArgumentException("Incompatible measurement categories");
         }
     }
@@ -93,10 +103,16 @@ final class MeasurementCalculator {
     static final class MeasurementResult {
         private final double value;
         private final IMeasurable unit;
+        private final String unitLabel;
 
         private MeasurementResult(double value, IMeasurable unit) {
+            this(value, unit, unit.getUnitName());
+        }
+
+        private MeasurementResult(double value, IMeasurable unit, String unitLabel) {
             this.value = value;
             this.unit = unit;
+            this.unitLabel = unitLabel;
         }
 
         double value() {
@@ -105,6 +121,10 @@ final class MeasurementCalculator {
 
         IMeasurable unit() {
             return unit;
+        }
+
+        String unitLabel() {
+            return unitLabel;
         }
     }
 }

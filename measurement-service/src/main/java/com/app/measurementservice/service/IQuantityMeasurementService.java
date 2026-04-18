@@ -15,6 +15,8 @@ public interface IQuantityMeasurementService {
 
     QuantityMeasurementDTO subtractQuantities(QuantityDTO quantity1, QuantityDTO quantity2);
 
+    QuantityMeasurementDTO multiplyQuantities(QuantityDTO quantity1, QuantityDTO quantity2);
+
     QuantityMeasurementDTO divideQuantities(QuantityDTO quantity1, QuantityDTO quantity2);
 
     List<QuantityMeasurementDTO> getHistoryByOperation(String operation);

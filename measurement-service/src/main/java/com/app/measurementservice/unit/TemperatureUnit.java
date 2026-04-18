@@ -46,7 +46,7 @@ public enum TemperatureUnit implements IMeasurable {
 
     @Override
     public void validateOperationSupport(String operation) {
-        if ("ADD".equals(operation) || "SUBTRACT".equals(operation)) {
+        if ("ADD".equals(operation) || "SUBTRACT".equals(operation) || "MULTIPLY".equals(operation)) {
             throw new IllegalArgumentException("Temperature does not support arithmetic operations");
         }
     }

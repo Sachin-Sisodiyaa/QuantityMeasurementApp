@@ -9,9 +9,7 @@ spring:
       globalcors:
         cors-configurations:
           '[/**]':
-            allowedOrigins:
-              - http://localhost:4200
-              - http://localhost:3000
+            allowedOrigins: ${GATEWAY_CORS_ALLOWED_ORIGINS:http://localhost:4200,http://localhost:3000}
             allowedMethods:
               - GET
               - POST
@@ -51,9 +49,9 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
-    register-with-eureka: true
-    fetch-registry: true
+      defaultZone: ${EUREKA_DEFAULT_ZONE:http://localhost:8761/eureka/}
+    register-with-eureka: ${EUREKA_REGISTER_WITH_EUREKA:true}
+    fetch-registry: ${EUREKA_FETCH_REGISTRY:true}
 
 management:
   endpoints:

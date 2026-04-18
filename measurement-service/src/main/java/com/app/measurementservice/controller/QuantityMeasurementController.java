@@ -73,6 +73,16 @@ public class QuantityMeasurementController {
         return ResponseEntity.ok(result);
     }
 
+    @PostMapping("/multiply")
+    @Operation(summary = "Multiply two compatible quantities")
+    public ResponseEntity<QuantityMeasurementDTO> multiplyQuantities(@Valid @RequestBody QuantityInputDTO input) {
+        logger.info("POST /multiply");
+        validateUser();
+        QuantityMeasurementDTO result = service.multiplyQuantities(
+                input.getThisQuantityDTO(), input.getThatQuantityDTO());
+        return ResponseEntity.ok(result);
+    }
+
     @PostMapping("/divide")
     @Operation(summary = "Divide two quantities")
     public ResponseEntity<QuantityMeasurementDTO> divideQuantities(@Valid @RequestBody QuantityInputDTO input) {

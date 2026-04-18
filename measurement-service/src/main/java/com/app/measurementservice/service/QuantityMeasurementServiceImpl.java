@@ -148,6 +148,37 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
     }
 
     @Override
+    public QuantityMeasurementDTO multiplyQuantities(QuantityDTO quantity1, QuantityDTO quantity2) {
+        QuantityMeasurementEntity entity = new QuantityMeasurementEntity();
+        try {
+            validateInputs(quantity1, quantity2);
+            validateSameCategory(quantity1, quantity2);
+
+            IMeasurable unit1 = IMeasurable.getUnitByName(quantity1.getUnit(), quantity1.getMeasurementType());
+            IMeasurable unit2 = IMeasurable.getUnitByName(quantity2.getUnit(), quantity2.getMeasurementType());
+
+            MeasurementResult result = MeasurementCalculator.multiply(
+                    quantity1.getValue(), unit1,
+                    quantity2.getValue(), unit2
+            );
+
+            populateEntity(entity, quantity1, quantity2, "multiply");
+            entity.setResultValue(result.value());
+            entity.setResultUnit(result.unitLabel());
+            entity.setResultMeasurementType(result.unit().getMeasurementType());
+            entity.setError(false);
+            repository.save(entity);
+            logger.debug("MULTIPLY persisted");
+
+            return QuantityMeasurementDTO.fromEntity(entity);
+
+        } catch (Exception e) {
+            persistError(entity, quantity1, quantity2, "multiply", e);
+            throw new QuantityMeasurementException("multiply Error: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
     public QuantityMeasurementDTO divideQuantities(QuantityDTO quantity1, QuantityDTO quantity2) {
         QuantityMeasurementEntity entity = new QuantityMeasurementEntity();
         try {

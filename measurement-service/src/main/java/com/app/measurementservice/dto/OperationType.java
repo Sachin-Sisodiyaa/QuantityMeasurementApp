@@ -5,5 +5,6 @@ public enum OperationType {
     CONVERT,
     ADD,
     SUBTRACT,
+    MULTIPLY,
     DIVIDE
 }
