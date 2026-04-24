@@ -9,11 +9,11 @@ spring:
     name: auth-service
   datasource:
     url: ${AUTH_DB_URL}
-    driver-class-name: ${AUTH_DB_DRIVER}
+    driver-class-name: ${AUTH_DB_DRIVER:com.mysql.cj.jdbc.Driver}
     username: ${AUTH_DB_USERNAME}
     password: ${AUTH_DB_PASSWORD}
   jpa:
-    database-platform: ${AUTH_JPA_DIALECT}
+    database-platform: ${AUTH_JPA_DIALECT:org.hibernate.dialect.MySQLDialect}
     hibernate:
       ddl-auto: update
     show-sql: true
