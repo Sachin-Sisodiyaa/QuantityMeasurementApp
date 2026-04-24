@@ -1,5 +1,5 @@
 server:
-  port: 8761
+  port: ${PORT:8761}
 
 spring:
   application:
@@ -12,3 +12,5 @@ eureka:
   server:
     enable-self-preservation: false
     eviction-interval-timer-in-ms: 60000
+
+
