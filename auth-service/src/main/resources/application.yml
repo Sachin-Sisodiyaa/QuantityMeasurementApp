@@ -29,7 +29,7 @@ auth:
 
 app:
   cors:
-    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS}
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:4200,https://quantitymeasurementapp-frontend-ajjg.onrender.com}
 
 eureka:
   client:
