@@ -11,10 +11,10 @@ spring:
             scope: openid,profile,email
 
   datasource:
-    url: jdbc:mysql://localhost:3306/quantitymeasurementdb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Kolkata
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    username: ${DB_USERNAME:root}
-    password: S@18052004
+    url: ${DB_URL:jdbc:mysql://sql5.freesqldatabase.com:3306/sql5824328?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Kolkata}
+    driver-class-name: ${DB_DRIVER:com.mysql.cj.jdbc.Driver}
+    username: ${DB_USERNAME:sql5824328}
+    password: ${DB_PASSWORD:}
     hikari:
       maximum-pool-size: 20
       minimum-idle: 5

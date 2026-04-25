@@ -3,6 +3,7 @@ package com.app.quantitymeasurement.config;
 import com.zaxxer.hikari.HikariDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -15,35 +16,54 @@ public class DataSourceFallbackConfig {
 
     private static final Logger log = LoggerFactory.getLogger(DataSourceFallbackConfig.class);
 
+    @Value("${spring.datasource.url}")
+    private String datasourceUrl;
+
+    @Value("${spring.datasource.username}")
+    private String datasourceUsername;
+
+    @Value("${spring.datasource.password:}")
+    private String datasourcePassword;
+
+    @Value("${spring.datasource.driver-class-name:com.mysql.cj.jdbc.Driver}")
+    private String datasourceDriverClassName;
+
+    @Value("${spring.datasource.hikari.maximum-pool-size:10}")
+    private int maximumPoolSize;
+
+    @Value("${spring.datasource.hikari.minimum-idle:2}")
+    private int minimumIdle;
+
+    @Value("${spring.datasource.hikari.connection-timeout:30000}")
+    private long connectionTimeout;
+
     @Bean
     @Primary
     public DataSource dataSource() {
 
-        //Try MySQL first
+        // Try the configured database first. If it is unavailable locally, use H2 so
+        // the app can still boot for development and tests.
         HikariDataSource mysqlDataSource = new HikariDataSource();
-        mysqlDataSource.setJdbcUrl(
-                "jdbc:mysql://127.0.0.1:3306/quantitymeasurementapp" +
-                "?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Kolkata"
-        );
-        mysqlDataSource.setUsername("root");
-        mysqlDataSource.setPassword("18052004");
-        mysqlDataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        mysqlDataSource.setJdbcUrl(datasourceUrl);
+        mysqlDataSource.setUsername(datasourceUsername);
+        mysqlDataSource.setPassword(datasourcePassword);
+        mysqlDataSource.setDriverClassName(datasourceDriverClassName);
 
-        mysqlDataSource.setMaximumPoolSize(20);
-        mysqlDataSource.setMinimumIdle(5);
-        mysqlDataSource.setConnectionTimeout(30000);
+        mysqlDataSource.setMaximumPoolSize(maximumPoolSize);
+        mysqlDataSource.setMinimumIdle(minimumIdle);
+        mysqlDataSource.setConnectionTimeout(connectionTimeout);
 
         try (Connection conn = mysqlDataSource.getConnection()) {
-            log.info("Connected to MySQL successfully");
+            log.info("Connected to configured database successfully");
             return mysqlDataSource;
 
         } catch (Exception ex) {
-            log.warn("MySQL not available, switching to H2", ex);
+            log.warn("Configured database not available, switching to H2", ex);
             return createH2Fallback();
         }
     }
 
-    //H2 fallback
+    // H2 fallback
     private DataSource createH2Fallback() {
         HikariDataSource h2DataSource = new HikariDataSource();
 
